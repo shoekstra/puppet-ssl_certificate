@@ -1,0 +1,16 @@
+{
+  "name": "shoekstra-ssl_certificate",
+  "version": "0.1.0",
+  "author": "shoekstra",
+  "summary": "Puppet module to deploy SSL certificates from a Puppet Master File Server mount point.",
+  "license": "Apache 2.0",
+  "source": "https://github.com/shoekstra/puppet-ssl_certificate",
+  "project_page": "https://github.com/shoekstra/puppet-ssl_certificate",
+  "issues_url": "https://github.com/shoekstra/puppet-ssl_certificate/issues",
+  "dependencies": [
+    {
+      "name": "puppetlabs-stdlib",
+      "version_requirement": ">= 1.0.0"
+    }
+  ]
+}

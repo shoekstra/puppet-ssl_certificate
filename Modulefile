@@ -1,0 +1,10 @@
+name          'shoekstra-ssl_certificate'
+version       '0.1.0'
+source        'https://github.com/shoekstra/puppet-ssl_certificate'
+author        'shoekstra'
+license       'Apache 2.0'
+summary       'Simple Puppet define to deploy SSL certificates.'
+description   ''
+project_page  'https://github.com/shoekstra/puppet-ssl_certificate'
+
+dependency 'puppetlabs/stdlib'
