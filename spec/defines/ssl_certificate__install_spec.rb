@@ -20,6 +20,7 @@ describe 'ssl_certificate::install', :type => :define do
 
           it { should contain_file('/usr/share/ca-certificates/managed_by_puppet/www.website.com.intermediate.crt').with_source('puppet:///ssl_certificates/www.website.com/www.website.com.intermediate.crt') }
           if osfamily == 'Debian'
+            it { should contain_file_line('/etc/ca-certificates.conf__managed_by_puppet/www.website.com.intermediate.crt').that_requires('File[/usr/share/ca-certificates/managed_by_puppet/www.website.com.intermediate.crt]') }
             it { should contain_file_line('/etc/ca-certificates.conf__managed_by_puppet/www.website.com.intermediate.crt').that_notifies('Exec[update-ca-certificates]') }
             it { should contain_exec('update-ca-certificates') }
           end
@@ -30,6 +31,7 @@ describe 'ssl_certificate::install', :type => :define do
 
           it { should contain_file('/usr/share/ca-certificates/managed_by_puppet/www.website.com.ca.crt').with_source('puppet:///ssl_certificates/www.website.com/www.website.com.ca.crt') }
           if osfamily == 'Debian'
+            it { should contain_file_line('/etc/ca-certificates.conf__managed_by_puppet/www.website.com.ca.crt').that_requires('File[/usr/share/ca-certificates/managed_by_puppet/www.website.com.ca.crt]') }
             it { should contain_file_line('/etc/ca-certificates.conf__managed_by_puppet/www.website.com.ca.crt').that_notifies('Exec[update-ca-certificates]') }
             it { should contain_exec('update-ca-certificates') }
           end
@@ -70,7 +72,11 @@ describe 'ssl_certificate::install', :type => :define do
         it { should contain_file('/etc/ssl/private/www.website.com.key').with_ensure('absent') }
         it { should contain_file('/usr/share/ca-certificates/managed_by_puppet/www.website.com.intermediate.crt').with_ensure('absent') }
         it { should contain_file('/usr/share/ca-certificates/managed_by_puppet/www.website.com.ca.crt').with_ensure('absent') }
-        it { should contain_exec('update-ca-certificates') }
+        if osfamily == 'Debian'
+          it { should contain_file_line('/etc/ca-certificates.conf__managed_by_puppet/www.website.com.intermediate.crt').that_notifies('Exec[update-ca-certificates]') }
+          it { should contain_file_line('/etc/ca-certificates.conf__managed_by_puppet/www.website.com.ca.crt').that_notifies('Exec[update-ca-certificates]') }
+          it { should contain_exec('update-ca-certificates') }
+        end
       end
     end
   end

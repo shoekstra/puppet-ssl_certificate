@@ -152,10 +152,11 @@ define ssl_certificate::install (
 
     if $install_intermediate {
       file_line { "/etc/ca-certificates.conf__${cert_conf_line_intermediate}":
-        ensure => present,
-        line   => $cert_conf_line_intermediate,
-        path   => '/etc/ca-certificates.conf',
-        notify => Exec['update-ca-certificates'],
+        ensure  => present,
+        line    => $cert_conf_line_intermediate,
+        path    => '/etc/ca-certificates.conf',
+        require => File["${real_intermediate_dir}/${intermediate_file}"],
+        notify  => Exec['update-ca-certificates'],
       }
     } else {
       file_line { "/etc/ca-certificates.conf__${cert_conf_line_intermediate}":
@@ -168,10 +169,11 @@ define ssl_certificate::install (
 
     if $install_ca {
       file_line { "/etc/ca-certificates.conf__${cert_conf_line_ca}":
-        ensure => present,
-        line   => $cert_conf_line_ca,
-        path   => '/etc/ca-certificates.conf',
-        notify => Exec['update-ca-certificates'],
+        ensure  => present,
+        line    => $cert_conf_line_ca,
+        path    => '/etc/ca-certificates.conf',
+        require => File["${real_ca_dir}/${ca_file}"],
+        notify  => Exec['update-ca-certificates'],
       }
     } else {
       file_line { "/etc/ca-certificates.conf__${cert_conf_line_ca}":
