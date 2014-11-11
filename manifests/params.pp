@@ -8,7 +8,7 @@ class ssl_certificate::params {
     'Debian': {
       $cert_dir = '/etc/ssl/certs'
       $key_dir = '/etc/ssl/private'
-      $ca_dir = '/usr/share/ca-certificates'
+      $ca_dir = '/usr/share/ca-certificates/managed_by_puppet'
     }
     default: {
       fail("${::operatingsystem} not supported")

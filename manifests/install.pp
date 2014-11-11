@@ -4,20 +4,36 @@
 #
 # === Parameters
 #
-# [*cert*]
-#   Filename of certificate to distribute.
+# [*cert_dir*]
+#   Directory where CA certificate will be installed.
+#   Default based on OS-family.
+#
+# [*cert_file*]
+#   Filename of certificate to install.
 #   Defaults to define name with ".crt" extension.
 #
-# [*key*]
-#   Filename of key to distribute.
+# [*key_dir*]
+#   Directory where CA certificate will be installed.
+#   Default based on OS-family.
+#
+# [*key_file*]
+#   Filename of key to install.
 #   Defaults to define name with ".key" extension.
 #
-# [*intermediate*]
-#   Filename of intermediate certificate to distribute.
+# [*intermediate_dir*]
+#   Directory where CA certificate will be installed.
+#   Default based on OS-family.
+#
+# [*intermediate_file*]
+#   Filename of intermediate certificate to install.
 #   Defaults to define name with ".intermediate.crt" extension.
 #
-# [*ca*]
-#   Filename of CA certificate to distribute.
+# [*ca_dir*]
+#   Directory where CA certificate will be installed.
+#   Default based on OS-family.
+#
+# [*ca_file*]
+#   Filename of CA certificate to install.
 #   Defaults to define name with ".ca.crt" extension.
 #
 # [*install_cert*]
@@ -34,10 +50,10 @@
 #   Defaults to 'false'
 #
 define ssl_certificate::install (
-  $cert                 = "${name}.crt",
-  $key                  = "${name}.key",
-  $intermediate         = "${name}.intermediate.crt",
-  $ca                   = "${name}.ca.crt",
+  $cert_file            = "${name}.crt",
+  $key_file             = "${name}.key",
+  $intermediate_file    = "${name}.intermediate.crt",
+  $ca_file              = "${name}.ca.crt",
   $cert_dir             = undef,
   $key_dir              = undef,
   $intermediate_dir     = undef,
@@ -48,11 +64,18 @@ define ssl_certificate::install (
   $install_ca           = false,
 ) {
 
+  require ssl_certificate::config
   include ssl_certificate::params
 
   validate_bool($install_cert, $install_key, $install_ca, $install_intermediate)
 
-  # set directories that certifiates will be installed to.
+  # validate paths if defined.
+  if $cert_dir { validate_absolute_path($cert_dir) }
+  if $key_dir { validate_absolute_path($key_dir) }
+  if $intermediate_dir { validate_absolute_path($intermediate_dir) }
+  if $ca_dir { validate_absolute_path($ca_dir) }
+
+  # set directories that certificates will be installed to.
   $real_cert_dir = $cert_dir ? {
     undef   => $ssl_certificate::params::cert_dir,
     default => $cert_dir
@@ -63,7 +86,7 @@ define ssl_certificate::install (
     default => $key_dir
   }
 
-  $real_intermediate_dir = $ca_dir ? {
+  $real_intermediate_dir = $intermediate_dir ? {
     undef   => $ssl_certificate::params::ca_dir,
     default => $ca_dir
   }
@@ -73,66 +96,95 @@ define ssl_certificate::install (
     default => $ca_dir
   }
 
-  # set file ensure
-  $cert_ensure = $install_cert ? {
-    true    => present,
-    default => absent,
-  }
-
-  $key_ensure = $install_key ? {
-    true    => present,
-    default => absent,
-  }
-
-  $intermediate_ensure = $install_intermediate ? {
-    true    => present,
-    default => absent,
-  }
-
-  $ca_ensure = $install_ca ? {
-    true    => present,
-    default => absent,
-  }
-
   File {
-    owner => 'root',
-    group => 'root',
-    mode  =>  0600,
+    owner   => 'root',
+    group   => 'root',
+    mode    => 0600,
   }
 
-  file { "${real_cert_dir}/${cert}":,
-    ensure => $cert_ensure,
-    source => "puppet:///ssl_certificates/${name}/${cert}",
+  if $install_cert {
+    file { "${real_cert_dir}/${cert_file}":,
+      ensure  => present,
+      source  => "puppet:///ssl_certificates/${name}/${cert_file}",
+    }
+  } else {
+    file { "${real_cert_dir}/${cert_file}":,
+      ensure => absent,
+    }
   }
 
-  file { "${real_key_dir}/${key}":
-    ensure => $key_ensure,
-    source => "puppet:///ssl_certificates/${name}/${key}",
+  if $install_key {
+    file { "${real_key_dir}/${key_file}":
+      ensure  => present,
+      source  => "puppet:///ssl_certificates/${name}/${key_file}",
+    }
+  } else {
+    file { "${real_key_dir}/${key_file}":
+      ensure => absent,
+    }
   }
 
-  file { "${real_intermediate_dir}/${intermediate}":
-    ensure => $intermediate_ensure,
-    source => "puppet:///ssl_certificates/${name}/${intermediate}",
+  if $install_intermediate {
+    file { "${real_intermediate_dir}/${intermediate_file}":
+      ensure => present,
+      source => "puppet:///ssl_certificates/${name}/${intermediate_file}",
+    }
+  } else {
+    file { "${real_intermediate_dir}/${intermediate_file}":
+      ensure => absent,
+    }
   }
 
-  file { "${real_ca_dir}/${ca}":
-    ensure => $ca_ensure,
-    source => "puppet:///ssl_certificates/${name}/${ca}",
+  if $install_ca {
+    file { "${real_ca_dir}/${ca_file}":
+      ensure => present,
+      source => "puppet:///ssl_certificates/${name}/${ca_file}",
+    }
+  } else {
+    file { "${real_ca_dir}/${ca_file}":
+      ensure => absent,
+    }
   }
 
-  if $::osfamily == 'Debian' {
-    Exec {
-      path        => '/usr/sbin',
-      refreshonly => true,
+  if $::osfamily == 'Debian' and $real_ca_dir =~ /^\/usr\/share\/ca-certificates/ or $real_intermediate_dir =~ /^\/usr\/share\/ca-certificates/ {
+    $cert_conf_line_intermediate = regsubst("${real_intermediate_dir}/${intermediate_file}", '/usr/share/ca-certificates/', '')
+    $cert_conf_line_ca = regsubst("${real_ca_dir}/${ca_file}", '/usr/share/ca-certificates/', '')
+
+    if $install_intermediate {
+      file_line { "/etc/ca-certificates.conf__${cert_conf_line_intermediate}":
+        ensure => present,
+        line   => $cert_conf_line_intermediate,
+        path   => '/etc/ca-certificates.conf',
+        notify => Exec['update-ca-certificates'],
+      }
+    } else {
+      file_line { "/etc/ca-certificates.conf__${cert_conf_line_intermediate}":
+        ensure => absent,
+        line   => $cert_conf_line_intermediate,
+        path   => '/etc/ca-certificates.conf',
+        notify => Exec['update-ca-certificates'],
+      }
     }
 
-    exec { 'dpkg-reconfigure ca-certificates':
-      subscribe => [File["${real_ca_dir}/${ca}"], File["${real_ca_dir}/${intermediate}"]],
-      before    => Exec['update-ca-certificates'],
+    if $install_ca {
+      file_line { "/etc/ca-certificates.conf__${cert_conf_line_ca}":
+        ensure => present,
+        line   => $cert_conf_line_ca,
+        path   => '/etc/ca-certificates.conf',
+        notify => Exec['update-ca-certificates'],
+      }
+    } else {
+      file_line { "/etc/ca-certificates.conf__${cert_conf_line_ca}":
+        ensure => absent,
+        line   => $cert_conf_line_ca,
+        path   => '/etc/ca-certificates.conf',
+        notify => Exec['update-ca-certificates'],
+      }
     }
 
     exec { 'update-ca-certificates':
-      subscribe => [File["${real_ca_dir}/${ca}"], File["${real_ca_dir}/${intermediate}"]],
+      path        => ['/bin', '/usr/bin/', '/usr/sbin'],
+      refreshonly => true,
     }
   }
 }
