@@ -10,6 +10,6 @@ class ssl_certificate::config {
     ensure => directory,
     owner  => 'root',
     group  => 'root',
-    mode   => 0755,
+    mode   => '0755',
   }
 }

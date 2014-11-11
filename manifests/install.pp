@@ -97,15 +97,15 @@ define ssl_certificate::install (
   }
 
   File {
-    owner   => 'root',
-    group   => 'root',
-    mode    => 0600,
+    owner => 'root',
+    group => 'root',
+    mode  => 0600,
   }
 
   if $install_cert {
     file { "${real_cert_dir}/${cert_file}":,
-      ensure  => present,
-      source  => "puppet:///ssl_certificates/${name}/${cert_file}",
+      ensure => present,
+      source => "puppet:///ssl_certificates/${name}/${cert_file}",
     }
   } else {
     file { "${real_cert_dir}/${cert_file}":,
@@ -115,8 +115,8 @@ define ssl_certificate::install (
 
   if $install_key {
     file { "${real_key_dir}/${key_file}":
-      ensure  => present,
-      source  => "puppet:///ssl_certificates/${name}/${key_file}",
+      ensure => present,
+      source => "puppet:///ssl_certificates/${name}/${key_file}",
     }
   } else {
     file { "${real_key_dir}/${key_file}":
