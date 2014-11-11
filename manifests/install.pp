@@ -150,6 +150,14 @@ define ssl_certificate::install (
     $cert_conf_line_intermediate = regsubst("${real_intermediate_dir}/${intermediate_file}", '/usr/share/ca-certificates/', '')
     $cert_conf_line_ca = regsubst("${real_ca_dir}/${ca_file}", '/usr/share/ca-certificates/', '')
 
+    File ["${real_intermediate_dir}/${intermediate_file}"] {
+      notify => Exec['update-ca-certificates']
+    }
+
+    File ["${real_ca_dir}/${ca_file}"] {
+      notify => Exec['update-ca-certificates']
+    }
+
     if $install_intermediate {
       file_line { "/etc/ca-certificates.conf__${cert_conf_line_intermediate}":
         ensure  => present,
