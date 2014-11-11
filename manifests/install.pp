@@ -52,14 +52,17 @@
 define ssl_certificate::install (
   $cert_file            = "${name}.crt",
   $key_file             = "${name}.key",
+  $pem_file             = "${name}.pem",
   $intermediate_file    = "${name}.intermediate.crt",
   $ca_file              = "${name}.ca.crt",
   $cert_dir             = undef,
   $key_dir              = undef,
+  $pem_dir              = undef,
   $intermediate_dir     = undef,
   $ca_dir               = undef,
   $install_cert         = true,
   $install_key          = true,
+  $install_pem          = false,
   $install_intermediate = false,
   $install_ca           = false,
 ) {
@@ -84,6 +87,11 @@ define ssl_certificate::install (
   $real_key_dir = $key_dir ? {
     undef   => $ssl_certificate::params::key_dir,
     default => $key_dir
+  }
+
+  $real_pem_dir = $pem_dir ? {
+    undef   => $ssl_certificate::params::cert_dir,
+    default => $pem_dir
   }
 
   $real_intermediate_dir = $intermediate_dir ? {
@@ -120,6 +128,17 @@ define ssl_certificate::install (
     }
   } else {
     file { "${real_key_dir}/${key_file}":
+      ensure => absent,
+    }
+  }
+
+  if $install_pem {
+    file { "${real_pem_dir}/${pem_file}":
+      ensure => present,
+      source => "puppet:///ssl_certificates/${name}/${pem_file}",
+    }
+  } else {
+    file { "${real_pem_dir}/${pem_file}":
       ensure => absent,
     }
   }
