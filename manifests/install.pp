@@ -170,11 +170,11 @@ define ssl_certificate::install (
     $cert_conf_line_ca = regsubst("${real_ca_dir}/${ca_file}", '/usr/share/ca-certificates/', '')
 
     File ["${real_intermediate_dir}/${intermediate_file}"] {
-      notify => Exec['update-ca-certificates']
+      notify => Exec["update-ca-certificates_${intermediate_file}"]
     }
 
     File ["${real_ca_dir}/${ca_file}"] {
-      notify => Exec['update-ca-certificates']
+      notify => Exec["update-ca-certificates_${ca_file}"]
     }
 
     if $install_intermediate {
@@ -183,14 +183,14 @@ define ssl_certificate::install (
         line    => $cert_conf_line_intermediate,
         path    => '/etc/ca-certificates.conf',
         require => File["${real_intermediate_dir}/${intermediate_file}"],
-        notify  => Exec['update-ca-certificates'],
+        notify  => Exec["update-ca-certificates_${intermediate_file}"],
       }
     } else {
       file_line { "/etc/ca-certificates.conf__${cert_conf_line_intermediate}":
         ensure => absent,
         line   => $cert_conf_line_intermediate,
         path   => '/etc/ca-certificates.conf',
-        notify => Exec['update-ca-certificates'],
+        notify => Exec["update-ca-certificates_${intermediate_file}"],
       }
     }
 
@@ -200,18 +200,23 @@ define ssl_certificate::install (
         line    => $cert_conf_line_ca,
         path    => '/etc/ca-certificates.conf',
         require => File["${real_ca_dir}/${ca_file}"],
-        notify  => Exec['update-ca-certificates'],
+        notify  => Exec["update-ca-certificates_${ca_file}"],
       }
     } else {
       file_line { "/etc/ca-certificates.conf__${cert_conf_line_ca}":
         ensure => absent,
         line   => $cert_conf_line_ca,
         path   => '/etc/ca-certificates.conf',
-        notify => Exec['update-ca-certificates'],
+        notify => Exec["update-ca-certificates_${ca_file}"],
       }
     }
 
-    exec { 'update-ca-certificates':
+    exec { "update-ca-certificates_${intermediate_file}":
+      path        => ['/bin', '/usr/bin/', '/usr/sbin'],
+      refreshonly => true,
+    }
+
+    exec { "update-ca-certificates_${ca_file}":
       path        => ['/bin', '/usr/bin/', '/usr/sbin'],
       refreshonly => true,
     }
