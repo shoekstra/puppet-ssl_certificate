@@ -96,7 +96,7 @@ To define custom certificate and key names and install the certificates to a loc
 ```puppet
 ssl_certificate::install { 'domain.com':
   cert     => 'shop.crt',
-  key      => 'shop'key',
+  key      => 'shop.key',
   cert_dir => '/srv/www/shop.domain.com/certs',
   key_dir  => '/srv/www/shop.domain.com/certs'
 }
