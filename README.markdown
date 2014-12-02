@@ -31,7 +31,7 @@ The idea is that if you are creating/converting certificates, this is generally 
 
 Sometimes you do not have the luxury of allowing of your Internet facing servers access to your local git instance; this module aims to solve that problem by making SSL certificates available to your client using a [custom mount point](https://docs.puppetlabs.com/guides/file_serving.html#serving-files-from-custom-mount-points).
 
-Without specifying any install paths, the define will push certificates to the default path per osfamily, but this is configurable.  It will also install any CA or intermediary certificates to the system certificate database if specified.
+Without specifying any install paths, the define will push certificates to the default path per OS-family, but this is configurable.  It will also install any CA or intermediary certificates to the system certificate database if specified.
 
 Default paths used (based on OS-family):
 
@@ -46,7 +46,7 @@ More OS-family defaults to be added in the future!
 
 ### What ssl_certificate affects
 
-Not an awful lot at this time.  It will push certificates to the path specified and at most attempt to install them to the system certificate database.  On Debian based systems, the certificate is installed and imported using the ["SSL Certificates for Server Use"]"(https://help.ubuntu.com/community/OpenSSL#SSL_Certificates_for_Server_Use) method defined on the Ubuntu community wiki.
+Not an awful lot at this time.  It will push certificates to the path specified and at most attempt to install them to the system certificate database.  On Debian based systems, the certificate is installed and imported using the ["SSL Certificates for Server Use"](https://help.ubuntu.com/community/OpenSSL#SSL_Certificates_for_Server_Use) method defined on the Ubuntu community wiki.
 
 ### Beginning with ssl_certificate
 
@@ -95,10 +95,10 @@ To define custom certificate and key names and install the certificates to a loc
 
 ```puppet
 ssl_certificate::install { 'domain.com':
-  cert         => 'shop.crt',
-  key          => 'shop'key',
-  cert_dir     => '/srv/www/shop.domain.com/certs',
-  key_dir      => '/srv/www/shop.domain.com/certs'
+  cert     => 'shop.crt',
+  key      => 'shop'key',
+  cert_dir => '/srv/www/shop.domain.com/certs',
+  key_dir  => '/srv/www/shop.domain.com/certs'
 }
 ```
 
